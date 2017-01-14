@@ -34,7 +34,7 @@
          min-idx -1]                                    ; -1 means no split
     (let [[p1 p2] (map avg (split-at idx xs))           ; Get shares in each set
           g (+ (gini p1) (gini p2))]                    ; Total gini resulting from split
-      ; (println (str "i: " idx ", g: " (double g)))      ; debug output
+      #_(println (str "i: " idx ", g: " (double g)))      ; debug output
       (if (= idx 1)                                     ; Stop at idx 1 
         {:min-gini min-gini, :min-idx min-idx}          ; return min
         (recur (dec idx)                                ; reduce idx by 1
