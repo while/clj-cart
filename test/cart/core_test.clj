@@ -3,6 +3,7 @@
             [cart.core :refer :all]))
 
 
+;; Test one? function
 (deftest test-one?
   (testing "Test double 1.0"
     (is (one? (double 1.0))))
@@ -14,7 +15,7 @@
     (is (one? 1/1))))
 
 
-;; Test average function 
+;; Test avg function 
 (deftest test-avg
   (testing "Test avg of zero"
     (is (zero? (avg [0]))))
@@ -40,36 +41,20 @@
     (is (= (gini 0 0 1) 0))))
 
 
-;; Test find-split on perfect set w all ones
-(deftest nosplit-test-all-one
+;; Test find-split
+(deftest test-find-split
   (testing "Test find-split on perfect set w all 1"
     (is (= (find-split [1 1 1 1 1])
-           {:gini 0 :idx -1}))))
-
-
-;; Test find-split on perfect set w all zeros
-(deftest nosplit-test-all-zero
+           {:gini 0 :idx -1})))
   (testing "Test find-split on perfect set w all 0"
     (is (= (find-split [0 0 0 0 0])
-           {:gini 0 :idx -1}))))
-
-
-;; Test find-split on perfectly sepparable set
-(deftest easysplit-test
+           {:gini 0 :idx -1})))
   (testing "Test find-split on sepparable set"
     (is (= (find-split [1 1 1 0 0])
-           {:gini 0 :idx 3}))))
-
-
-;; Test find-split on perfectly sepparable set mirrored
-(deftest easysplit-test-mirror
+           {:gini 0 :idx 3})))
   (testing "Test find-split on sepparable set mirrored"
     (is (= (find-split [0 0 0 1 1])
-           {:gini 0 :idx 3}))))
-
-
-;; Test find-split on perfectly sepparable set
-(deftest hardsplit-test
+           {:gini 0 :idx 3})))
   (testing "Test find-split on non sepparable set"
     (is (= (find-split [1 0 1 0 1])
            {:gini 12/25 :idx -1}))))
