@@ -69,10 +69,10 @@
 ;; Train a decision tree recursively using CART
 (defn cart
   "Train a decisiontree using CART on provided dataset."
-  [data opts]
-  (let [max-depth (:max-depth opts 5)
-        mtry (:mtry opts (int (Math/sqrt (count data))))
-        vars (disj (into #{} (keys (first data))) :y)
+  ([data] (cart data {}))
+  ([data opts]
+  (let [vars (disj (into #{} (keys (first data))) :y)
+        mtry (:mtry opts (int (Math/sqrt (count vars))))
         splits (compute-splits data (sample vars mtry))
         optimal (apply min-key :gini splits)
         split-dat (split-at (:idx optimal) (sort-by (:var optimal) data))]
@@ -81,5 +81,14 @@
       {:var (:var optimal)
        :split ((:var optimal) (first (second split-dat)))
        :left (cart (first split-dat) opts)
-       :right (cart (second split-dat) opts)})))
+       :right (cart (second split-dat) opts)}))))
 
+
+;; Read data from CSV file and parse into vector of maps. This is still a bit
+;; predefined for this specific dataset.
+(defn load-data []
+  (rest (map (fn [line] 
+               (into {} 
+                     (map #(vector %1 (read-string %2))
+                          [:x1 :x2 :y] (clojure.string/split line #",")))) 
+             (clojure.string/split (slurp "resources/data-2dnorm-100.csv") #"\n"))))

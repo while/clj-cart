@@ -60,10 +60,3 @@
            {:gini 12/25 :idx -1}))))
 
 
-;;;; Read data prom file and parse into vector of maps
-;;(def data
-;;  (rest (map (fn [line] 
-;;               (into {} 
-;;                     (map #(vector %1 (read-string %2))
-;;                          [:x1 :x2 :y] (split line #",")))) 
-;;             (split (slurp "resources/data.csv") #"\n"))))
