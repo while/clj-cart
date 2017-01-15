@@ -5,7 +5,7 @@
 (defn one?
   "Returns true if num is one, else false"
   [x]
-  (= x 1))
+  (== x 1))
 
 
 ;; Gini impurity
@@ -14,7 +14,7 @@
   ([p] (* 2 p (- 1 p)))
   ([p & ps]
    {:pre [(one? (reduce + p ps))]}
-   (reduce (fn [acc p] (+ acc (* p (- 1 p)))) 0 ps)))
+   (reduce (fn [acc p] (+ acc (* p (- 1 p)))) 0 (cons p ps))))
 
 
 ;; Average
