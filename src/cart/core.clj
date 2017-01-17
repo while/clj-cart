@@ -33,14 +33,16 @@
   (loop [idx (- (count xs) 1)                           ; Start splitting on n-1
          min-gini (gini (avg xs))                       ; Gini on full set
          min-idx -1]                                    ; -1 means no split
-    (let [[p1 p2] (map avg (split-at idx xs))           ; Get shares in each set
-          g (+ (gini p1) (gini p2))]                    ; Total gini resulting from split
-      #_(println (str "i: " idx ", g: " (double g)))      ; debug output
-      (if (= idx 1)                                     ; Stop at idx 1 
-        {:gini min-gini, :idx min-idx}          ; return min
-        (recur (dec idx)                                ; reduce idx by 1
-               (min min-gini g)                         ; find minimum gini
-               (if (> min-gini g) idx min-idx))))))     ; update min-idx if smaller
+    (if (zero? min-gini)
+      {:gini min-gini, :idx min-idx}                    ; Return perfect split
+      (let [[p1 p2] (map avg (split-at idx xs))         ; Get shares in each set
+            g (/ (+ (gini p1) (gini p2)) 2)]            ; Gini resulting from split
+        #_(println (str "i: " idx ", g: " (double g)))    ; debug output
+        (if (= idx 1)                                   ; Stop at idx 1 
+          {:gini min-gini, :idx min-idx}                ; return min
+          (recur (dec idx)                              ; reduce idx by 1
+                 (min min-gini g)                       ; find minimum gini
+                 (if (< g min-gini) idx min-idx)))))))  ; update min-idx if smaller
 
 
 ;; Sample without replacement (Algorithm R)

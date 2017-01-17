@@ -54,9 +54,6 @@
            {:gini 0 :idx 3})))
   (testing "Test find-split on sepparable set mirrored"
     (is (= (find-split [0 0 0 1 1])
-           {:gini 0 :idx 3})))
-  (testing "Test find-split on non sepparable set"
-    (is (= (find-split [1 0 1 0 1])
-           {:gini 12/25 :idx -1}))))
+           {:gini 0 :idx 3}))))
 
 
