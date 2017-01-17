@@ -30,7 +30,7 @@
   "Fins split that minimize gini-impurity. If idx is -1 it means no split."
   [xs cp]
   (let [parent-gini (gini (avg xs))]
-  (loop [idx (- (count xs) 1)                           ; Start splitting on n-1
+  (loop [idx (dec (count xs))                           ; Start splitting on n-1
          min-gini parent-gini                           ; Gini on parent set
          min-idx -1]                                    ; -1 means no split
     #_(println (str "i: " idx                           ; DEBUG
@@ -54,10 +54,10 @@
 (defn sample
   [x k]
   {:pre [(<= k (count x))]}
-  (let [S (into [] x)
+  (let [S (vec x)
         n (count x)]
     (loop [i k
-           R (into [] (take k x))
+           R (vec (take k x))
            j (rand-int (inc k))]
       #_(println (str "i=" i " j=" j " S=" S " x[i]=" (get S i)))
       (if (= i n)
@@ -81,7 +81,7 @@
   "Train a decisiontree using CART on provided dataset."
   ([data] (cart data {}))
   ([data opts]
-   (let [vars (disj (into #{} (keys (first data))) :y)
+   (let [vars (disj (set (keys (first data))) :y)      ; get vars which are not target
          mtry (:mtry opts (count vars))                ; Nbr of vars to consider in splits
          minsplit (:minsplit opts 1)                   ; Min size of leafs
          cp (:cp opts 1e-6)                            ; Complexity param
