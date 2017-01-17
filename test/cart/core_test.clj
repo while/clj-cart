@@ -57,3 +57,53 @@
            {:gini 0 :idx 3}))))
 
 
+;; Test cart
+(deftest test-cart
+  (testing "Test simple linearly sepparable set w two points"
+    (let [data [{:x1 0 :y 0}
+                {:x1 1 :y 1}]]
+      (is (= (cart data {:cp 0})
+             {:var :x1 :split 1 :left 0 :right 1}))))
+  (testing "test u shaped set w four points"
+    (let [data [{:x1 0 :y 1}
+                {:x1 1 :y 0}
+                {:x1 2 :y 0}
+                {:x1 3 :y 1}]]
+      (is (= (cart data {:cp 0})
+             {:var :x1
+              :split 3
+              :left {:var :x1
+                     :split 1
+                     :left 1
+                     :right 0}
+              :right 1}))))
+  (testing "Test mixed set w 7 points"
+    (let [data [{:x1 0, :y 0}
+                {:x1 1, :y 0}
+                {:x1 2, :y 0}
+                {:x1 3, :y 1}
+                {:x1 4, :y 1}
+                {:x1 5, :y 0}
+                {:x1 6, :y 1}]]
+      (is (= (cart data {:cp 0})
+             {:var :x1,
+              :split 3,
+              :left 0,
+              :right
+              {:var :x1,
+               :split 6,
+               :left {:var :x1, :split 5, :left 1, :right 0},
+               :right 1}}))))
+  (testing "Test mixed set w 7 points, high cp"
+    (let [data [{:x1 0, :y 0}
+                {:x1 1, :y 0}
+                {:x1 2, :y 0}
+                {:x1 3, :y 1}
+                {:x1 4, :y 1}
+                {:x1 5, :y 0}
+                {:x1 6, :y 1}]]
+      (is (= (cart data {:cp 0.5})
+             {:var :x1,
+              :split 3,
+              :left 0,
+              :right 3/4})))))

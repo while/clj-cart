@@ -17,33 +17,43 @@
    (reduce (fn [acc p] (+ acc (* p (- 1 p)))) 0 (cons p ps))))
 
 
-;; Average
+;; Average for lazy seq
 (defn avg
   "Compute average of list values"
   [xs]
-  (let [n (count xs)
-        x (reduce + xs)]
-    (/ x n)))
+  (let [[n sum] (reduce (fn [[n sum] x] [(inc n) (+ sum x)]) [0 0] xs)]
+    (/ sum n)))
 
+;; Average
+(defn avg2
+  "Compute average of vector values"
+  [xs]
+  (/ (apply + xs)
+     (count xs)))
 
 ;; Find split that minimizes gini impurity 
 (defn find-split
   "Fins split that minimize gini-impurity. If idx is -1 it means no split."
   [xs cp]
+  (let [parent-gini (gini (avg xs))]
   (loop [idx (- (count xs) 1)                           ; Start splitting on n-1
-         min-gini (gini (avg xs))                       ; Gini on full set
+         min-gini parent-gini                           ; Gini on parent set
          min-idx -1]                                    ; -1 means no split
-    (if (zero? min-gini)
+    #_(println (str "i: " idx                           ; DEBUG
+                  ", min-idx: " min-idx                 ; DEBUG
+                  ", min-g: " (double min-gini)))       ; DEBUG
+    (if (or (zero? min-gini)
+            (zero? idx))
       {:gini min-gini, :idx min-idx}                    ; Return perfect split
       (let [[p1 p2] (map avg (split-at idx xs))         ; Get shares in each set
             g (/ (+ (gini p1) (gini p2)) 2)]            ; Gini resulting from split
-        #_(println (str "i: " idx ", g: " (double g)))    ; debug output
-        (if (= idx 1)                                   ; Stop at idx 1 
-          {:gini min-gini, :idx min-idx}                ; return min
+        #_(println (str "i: " idx ", g: " (double g)))  ; DEBUG
+        (if (> (- 1 cp) (/ g parent-gini))              ; update min- vals if improvement > cp
           (recur (dec idx)                              ; reduce idx by 1
-                 (min min-gini g)                       ; find minimum gini
-                 (if (> (/ (- min-gini g) min-gini) cp)
-                   idx min-idx)))))))                   ; update min-idx if improvement > cp
+                 (min min-gini g)                       ; pass on minimum gini
+                 (if (< g min-gini)                     ; pass on split idx
+                     idx min-idx))
+          (recur (dec idx) min-gini min-idx)))))))
 
 
 ;; Sample without replacement (Algorithm R)
@@ -66,7 +76,10 @@
 ;; Compute optimal split points for the choosen variables 
 (defn compute-splits
   [data vars cp]
-  (map #(conj (find-split (map :y (sort-by % data)) cp) [:var %]) vars))
+  #_(println (str "Computing splits for " vars))          ; DEBUG
+  (map #(conj (find-split (map :y (sort-by % data)) cp)
+              [:var %])
+       vars))
 
 
 ;; Train a decision tree recursively using CART
@@ -74,18 +87,21 @@
   "Train a decisiontree using CART on provided dataset."
   ([data] (cart data {}))
   ([data opts]
-  (let [vars (disj (into #{} (keys (first data))) :y)
-        mtry (:mtry opts (int (Math/sqrt (count vars))))  ; Nbr of vars to consider in splits
-        cp (:cp opts 1e-6)                                ; Complexity param
-        splits (compute-splits data (sample vars mtry) cp)
-        optimal (apply min-key :gini splits)
-        split-dat (split-at (:idx optimal) (sort-by (:var optimal) data))]
-    (if (= (:idx optimal) -1)
-      (avg (map :y data))
-      {:var (:var optimal)
-       :split ((:var optimal) (first (second split-dat)))
-       :left (cart (first split-dat) opts)
-       :right (cart (second split-dat) opts)}))))
+   (let [vars (disj (into #{} (keys (first data))) :y)
+         mtry (:mtry opts (count vars))                ; Nbr of vars to consider in splits
+         minsplit (:minsplit opts 1)                   ; Min size of leafs
+         cp (:cp opts 1e-6)                            ; Complexity param
+         splits (compute-splits data (sample vars mtry) cp)
+         optimal (apply min-key :gini splits)
+         split-dat (split-at (:idx optimal) (sort-by (:var optimal) data))]
+     #_(println splits)                                ; DEBUG
+     (if (or (= (:idx optimal) -1)                         ; If no optimal split exists or
+             (<= (count data) minsplit))
+       (avg (map :y data))
+       {:var (:var optimal)
+        :split ((:var optimal) (first (second split-dat)))
+        :left (cart (first split-dat) opts)
+        :right (cart (second split-dat) opts)}))))
 
 
 ;; Read data from CSV file and parse into vector of maps. This is still a bit
@@ -96,3 +112,12 @@
                      (map #(vector %1 (read-string %2))
                           [:x1 :x2 :y] (clojure.string/split line #",")))) 
              (clojure.string/split (slurp "resources/data-2dnorm-100.csv") #"\n"))))
+
+
+(def data [{:x1 0 :y 0}
+           {:x1 1 :y 0}
+           {:x1 2 :y 0}
+           {:x1 3 :y 1}
+           {:x1 4 :y 1}
+           {:x1 5 :y 0}
+           {:x1 6 :y 1}]) 
