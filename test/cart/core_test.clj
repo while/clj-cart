@@ -44,16 +44,16 @@
 ;; Test find-split
 (deftest test-find-split
   (testing "Test find-split on perfect set w all 1"
-    (is (= (find-split [1 1 1 1 1])
+    (is (= (find-split [1 1 1 1 1] 0)
            {:gini 0 :idx -1})))
   (testing "Test find-split on perfect set w all 0"
-    (is (= (find-split [0 0 0 0 0])
+    (is (= (find-split [0 0 0 0 0] 0)
            {:gini 0 :idx -1})))
   (testing "Test find-split on sepparable set"
-    (is (= (find-split [1 1 1 0 0])
+    (is (= (find-split [1 1 1 0 0] 0)
            {:gini 0 :idx 3})))
   (testing "Test find-split on sepparable set mirrored"
-    (is (= (find-split [0 0 0 1 1])
+    (is (= (find-split [0 0 0 1 1] 0)
            {:gini 0 :idx 3}))))
 
 

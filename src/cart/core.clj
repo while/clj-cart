@@ -29,7 +29,7 @@
 ;; Find split that minimizes gini impurity 
 (defn find-split
   "Fins split that minimize gini-impurity. If idx is -1 it means no split."
-  [xs]
+  [xs cp]
   (loop [idx (- (count xs) 1)                           ; Start splitting on n-1
          min-gini (gini (avg xs))                       ; Gini on full set
          min-idx -1]                                    ; -1 means no split
@@ -42,7 +42,8 @@
           {:gini min-gini, :idx min-idx}                ; return min
           (recur (dec idx)                              ; reduce idx by 1
                  (min min-gini g)                       ; find minimum gini
-                 (if (< g min-gini) idx min-idx)))))))  ; update min-idx if smaller
+                 (if (> (/ (- min-gini g) min-gini) cp)
+                   idx min-idx)))))))                   ; update min-idx if improvement > cp
 
 
 ;; Sample without replacement (Algorithm R)
@@ -64,8 +65,8 @@
 
 ;; Compute optimal split points for the choosen variables 
 (defn compute-splits
-  [data vars]
-  (map #(conj (find-split (map :y (sort-by % data))) [:var %]) vars))
+  [data vars cp]
+  (map #(conj (find-split (map :y (sort-by % data)) cp) [:var %]) vars))
 
 
 ;; Train a decision tree recursively using CART
@@ -74,8 +75,9 @@
   ([data] (cart data {}))
   ([data opts]
   (let [vars (disj (into #{} (keys (first data))) :y)
-        mtry (:mtry opts (int (Math/sqrt (count vars))))
-        splits (compute-splits data (sample vars mtry))
+        mtry (:mtry opts (int (Math/sqrt (count vars))))  ; Nbr of vars to consider in splits
+        cp (:cp opts 1e-6)                                ; Complexity param
+        splits (compute-splits data (sample vars mtry) cp)
         optimal (apply min-key :gini splits)
         split-dat (split-at (:idx optimal) (sort-by (:var optimal) data))]
     (if (= (:idx optimal) -1)
