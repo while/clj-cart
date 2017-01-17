@@ -17,19 +17,13 @@
    (reduce (fn [acc p] (+ acc (* p (- 1 p)))) 0 (cons p ps))))
 
 
-;; Average for lazy seq
-(defn avg
-  "Compute average of list values"
-  [xs]
-  (let [[n sum] (reduce (fn [[n sum] x] [(inc n) (+ sum x)]) [0 0] xs)]
-    (/ sum n)))
-
 ;; Average
-(defn avg2
+(defn avg
   "Compute average of vector values"
   [xs]
   (/ (apply + xs)
      (count xs)))
+
 
 ;; Find split that minimizes gini impurity 
 (defn find-split
@@ -112,12 +106,3 @@
                      (map #(vector %1 (read-string %2))
                           [:x1 :x2 :y] (clojure.string/split line #",")))) 
              (clojure.string/split (slurp "resources/data-2dnorm-100.csv") #"\n"))))
-
-
-(def data [{:x1 0 :y 0}
-           {:x1 1 :y 0}
-           {:x1 2 :y 0}
-           {:x1 3 :y 1}
-           {:x1 4 :y 1}
-           {:x1 5 :y 0}
-           {:x1 6 :y 1}]) 
